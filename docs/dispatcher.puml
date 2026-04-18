@@ -1,0 +1,60 @@
+https://plantuml.com/ru/component-diagram
+@startuml
+
+!theme plain
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 60
+
+skinparam component {
+  BackgroundColor #E3F2FD
+  BorderColor #123456
+  FontColor #123456
+}
+
+skinparam database {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+  FontColor #1B5E20
+}
+
+title Структура диспетчера сообщений\nWebSocket Server
+
+actor "Клиент А\n(бот-отправитель)" as ClientA
+actor "Клиент Б\n(бот-получатель)" as ClientB
+
+package "Слой обработки" {
+  component "HandshakeHeadersInterceptor" as Interceptor #E2F2FF
+  component "ServerWebSocketHandler" as Handler #E2F2FF
+  database "Map<botId, Session>\nactiveSessions" as Sessions #E2F2DD
+  component "HeartbeatHandler" as Heartbeat #E2F2FF
+}
+
+package "Слой маршрутизации" {
+  component "ForwardingMessageRouter" as Router #CCCFFF
+}
+
+package "Слой фильтрации" {
+  component "MessageFilterChain" as Chain #FFFCCC
+  component "EchoFilter" as Filter1 #FFFAAA
+  component "ForbiddenPlatformFilter" as Filter2 #FFFAAA
+}
+
+ClientA -> Interceptor : 1. Handshake
+Interceptor --> Handler : 2. Кладет в атрибуты\nсессии 'connection_info'
+Handler --> Sessions : 3. Сохраняет\n(botId - session)
+Handler ..> Heartbeat : 4. Проверяет\nкаждые N сек
+
+ClientA -> Handler : 5. Отправляет\nсообщение
+Handler -> Router : 6. Маршрутизирует
+
+Router ---> Chain : 7. Фильтрует
+Chain <--> Filter1 : 8. Не отправлять себе
+Chain <---> Filter2 : 9. Не отправлять на\nзапрещенные\nплатформы
+Chain -> Router : 10. Вернуть\nрезультат\nвалидации
+
+Router ---> ClientB : 11.Отправить\nсообщение
+
+@enduml

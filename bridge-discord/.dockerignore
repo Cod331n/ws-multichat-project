@@ -1,0 +1,14 @@
+.venv
+venv
+env
+.env
+
+.idea/
+.vscode/
+.DS_Store
+
+.git
+.gitignore
+
+.md
+.txt

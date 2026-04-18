@@ -1,0 +1,39 @@
+services:
+  dispatcher:
+    build:
+      context: dispatcher
+    env_file:
+      - .env
+      - .env.debug
+    ports:
+      - "8080:8080"
+    networks:
+      - chat-network
+  bridge-telegram:
+    build:
+      context: bridge-telegram
+    env_file:
+      - .env
+      - .env.debug
+    ports:
+      - "8081:8080"
+    depends_on:
+      - dispatcher
+    networks:
+      - chat-network
+  bridge-discord:
+    build:
+      context: bridge-discord
+    env_file:
+      - .env
+      - .env.debug
+    ports:
+      - "8082:8080"
+    depends_on:
+      - dispatcher
+    networks:
+      - chat-network
+
+networks:
+  chat-network:
+    driver: bridge
